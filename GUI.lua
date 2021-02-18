@@ -69,13 +69,9 @@ function applybtn:action()
     end
 
     -- cache bust
-    if tostring(running_set) ~= tostring(current_set) then
-        local v = taseditor.getinput(1, 1)
-        taseditor.submitinputchange(1, 1, bit.band(v + 1, 0xFF))
-        running_set = current_set
-        print("Changing framerule")
-    end
-
+    local set1 = bit.band(current_set, 0xFF)
+    taseditor.submitinputchange(0, 1, bit.band(current_set, 0xFF))
+    taseditor.submitinputchange(1, 1, bit.rshift(bit.band(current_set, 0xFF00), 8))
     taseditor.applyinputchanges()
 end
 
