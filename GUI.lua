@@ -86,8 +86,9 @@ dlg = iup.dialog{
     iup.vbox{iup.vbox(ddls),applybtn},
     title = "8-2 Permutations",
     size = 240,
-    margin = "8x8"
-  }
+    margin = "8x8",
+    resize = "NO"
+}
 
 gui.register(function()
     if emu.framecount() == ending_frame then
@@ -95,7 +96,7 @@ gui.register(function()
     end
 end)
 
-dlg:showxy()
+dlg:showxy(iup.MOUSEPOS, iup.MOUSEPOS)
 emu.registerexit(function ()
     dlg:destroy()
 end)

@@ -255,6 +255,14 @@ function get_result()
         s = s .. "        "
     end
     s = s .. string.format(",P%d", is_plant_spawned)
+
+    for i=1,5 do
+        local type = memory.readbyte(Enemy_ID + i)
+        if memory.readbyte(Enemy_Flag + i) > 0 and type == GreenParatroopaJump then
+            s = s .. string.format(",K%02X", 240 - memory.readbyte(Enemy_Y_Position + i))
+        end
+    end
+
     -- s = s .. string.format(",%s", cannon_timers)
     return s
 end
