@@ -1,0 +1,5 @@
+Regex find all tas double shots
+([135],....,)L-1-3101,H-.-3(1..|.8[1-9]|.9.)
+
+Regex find all tas shots without double shots
+([135],....,)L-.-3101, +
