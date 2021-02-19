@@ -232,7 +232,6 @@ function get_bullet_positions()
 end
 
 local is_plant_spawned = 0
-local cannon_timers = ""
 
 function get_result()
     -- mark as failed if mario didnt make it to the end of the stage
@@ -244,15 +243,25 @@ function get_result()
     local s = ""
     local bullets = get_bullet_positions()
     -- write out bullet positions to the log file
-    if bullets[56] ~= nil then
-        s = s .. string.format("L-%X-%04d,", bullets[56].mf, bullets[56].x)
+    if bullets[56] ~= nil and bullets[56].x > 3000 then
+        local v = 3101 - bullets[56].x
+        local mf = "l"
+        local ss = ""
+        if v < 0 then ss = "+" end
+        if bullets[56].mf ~= 0 then mf = "L" end
+        s = s .. string.format("%s%s%02d", mf, ss, v)
     else
-        s = s ..  "        ,"
+        s = s ..  "   "
     end
-    if bullets[88] ~= nil then
-        s = s .. string.format("H-%X-%04d", bullets[88].mf, bullets[88].x)
+    if bullets[88] ~= nil and bullets[88].x > 3000 then
+        local v = 3101 - bullets[88].x
+        local ss = ""
+        local mf = "h"
+        if v < 0 then ss = "+" end
+        if bullets[88].mf ~= 0 then mf = "H" end
+        s = s .. string.format(",%s%s%02d", mf, ss, v)
     else
-        s = s .. "        "
+        s = s .. ",   "
     end
     s = s .. string.format(",P%d", is_plant_spawned)
 
@@ -263,7 +272,6 @@ function get_result()
         end
     end
 
-    -- s = s .. string.format(",%s", cannon_timers)
     return s
 end
 
@@ -274,39 +282,13 @@ emu.registerafter(function ()
     -- set player to have 1 frame of iframes every frame
     memory.writebyte(InjuryTimer, 0x02)
 
-    -- move player up to ground if we're falling to our death
-    if memory.readbyte(Player_Y_Position) > 178 and memory.readbyte(Player_Y_HighPos) > 0 then
-        memory.writebyte(Player_Y_Position, 176)
-    end
 
+    -- note plant spawn
     if emu.framecount() == 1258 then
         is_plant_spawned = 0
-        cannon_timers = ""
         if EnemyX(getclosestenemy()) == 2504 then
             is_plant_spawned = 1
         end
-    end
-    
-    -- log some cannon timers
-    if EnemyX(-1) >= 0xC15 and EnemyX(-1) < 0xC18 then
-        local ct = string.format("CT:%x,%x,%x,%x,%x",
-            memory.readbyte(Cannon_Timer + 0),
-            memory.readbyte(Cannon_Timer + 1),
-            memory.readbyte(Cannon_Timer + 2),
-            memory.readbyte(Cannon_Timer + 3),
-            memory.readbyte(Cannon_Timer + 4),
-            memory.readbyte(Cannon_Timer + 5)
-        )
-        local ef = string.format("EF:%x,%x,%x,%x,%x",
-            memory.readbyte(Enemy_Flag + 0),
-            memory.readbyte(Enemy_Flag + 1),
-            memory.readbyte(Enemy_Flag + 2),
-            memory.readbyte(Enemy_Flag + 3),
-            memory.readbyte(Enemy_Flag + 4),
-            memory.readbyte(Enemy_Flag + 5)
-        )
-
-        cannon_timers = string.format("%s,%s", ct, ef)
     end
     
     -- move player out of the way when holding select
@@ -314,14 +296,18 @@ emu.registerafter(function ()
         memory.writebyte(Player_Y_Position, 0x3E)
     end
 
+    -- move up and down to avoid bonks
     if emu.framecount() >= 1015 and emu.framecount() <= 1016 and memory.readbyte(Player_Y_Position) < 0x70 then
         memory.writebyte(Player_Y_Position, 0x60)
     end
     if emu.framecount() == 893 then
         memory.writebyte(Player_Y_Position, 0xB0)
     end
+    if memory.readbyte(Player_Y_Position) > 178 and memory.readbyte(Player_Y_HighPos) > 0 then
+        memory.writebyte(Player_Y_Position, 176)
+    end
 
-    -- print result
+    -- print result while in testing
     if emu.nesl == nil and emu.framecount() == ending_frame then
         logmsg(get_result())
     end
